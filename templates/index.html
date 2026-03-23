@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>CDN Explorer</title>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 20px; margin-bottom: 20px; }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .file-card { background: var(--card); border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #334155; overflow: hidden; }
+        
+        .preview { height: 120px; display: flex; align-items: center; justify-content: center; background: #000; border-radius: 8px; margin-bottom: 10px; }
+        .preview img { max-height: 100%; max-width: 100%; border-radius: 4px; }
+        .file-icon { font-size: 3em; color: var(--accent); }
+        
+        .filename { font-size: 0.9em; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .actions { display: flex; gap: 5px; justify-content: center; }
+        
+        button { cursor: pointer; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8em; }
+        .btn-copy { background: var(--accent); color: #000; }
+        .btn-del { background: #ef4444; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📦 CDN Personal</h1>
+        <div>
+            <input type="file" id="fileInput">
+            <button class="btn-copy" onclick="upload()">⬆️ Subir</button>
+        </div>
+    </div>
+
+    <div class="grid">
+        {% for file in files %}
+        <div class="file-card">
+            <div class="preview">
+                {% if file.is_img %}
+                    <img src="{{ file.url }}" alt="preview">
+                {% else %}
+                    <span class="file-icon">📄</span>
+                {% endif %}
+            </div>
+            <div class="filename">{{ file.name }}</div>
+            <div class="actions">
+                <button class="btn-copy" onclick="copy('{{ file.url }}')">Copiar Link</button>
+                <button class="btn-del" onclick="remove('{{ file.name }}')">🗑️</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function copy(url) {
+        navigator.clipboard.writeText(url);
+        alert("¡Link copiado!");
+    }
+
+    async function upload() {
+        const input = document.getElementById('fileInput');
+        if (!input.files[0]) return;
+        const body = new FormData();
+        body.append('file', input.files[0]);
+        await fetch('/upload', { method: 'POST', body });
+        location.reload();
+    }
+
+    async function remove(name) {
+        if (!confirm('¿Borrar ' + name + '?')) return;
+        await fetch('/delete/' + name, { method: 'DELETE' });
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
+
